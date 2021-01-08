@@ -73,11 +73,9 @@ class ImportTransactionsService {
     ];
 
     allCategories.forEach(async categoryTitle => {
-      const category = categoriesRepository.create({
-        title: categoryTitle,
-      });
-
-      await categoriesRepository.save(category);
+      const category = await transactionsRepository.verifyCategory(
+        categoryTitle,
+      );
 
       transactions.forEach(async transaction => {
         if (transaction.category === categoryTitle) {
@@ -92,6 +90,8 @@ class ImportTransactionsService {
         }
       });
     });
+
+    console.log(await categoriesRepository.find());
 
     // const newCategories = categoriesRepository.create(
     //   addCategoryTitles.map(title => ({
@@ -116,7 +116,7 @@ class ImportTransactionsService {
 
     // await transactionsRepository.save(importedTransactions);
 
-    console.log(await categoriesRepository.find());
+    // console.log(await categoriesRepository.find());
 
     const transactionsAndCategories = {
       transactions,
