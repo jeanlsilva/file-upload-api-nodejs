@@ -67,56 +67,52 @@ class ImportTransactionsService {
       .filter(category => !existentCategoriesTitles.includes(category))
       .filter((value, index, self) => self.indexOf(value) === index);
 
-    const allCategories: string[] = [
-      ...addCategoryTitles,
-      ...existentCategoriesTitles,
-    ];
+    // const allCategories: string[] = [
+    //   ...addCategoryTitles,
+    //   ...existentCategoriesTitles,
+    // ];
 
-    allCategories.forEach(async categoryTitle => {
-      const category = await transactionsRepository.verifyCategory(
-        categoryTitle,
-      );
+    // allCategories.forEach(async categoryTitle => {
+    //   const category = await transactionsRepository.verifyCategory(
+    //     categoryTitle,
+    //   );
 
-      transactions.forEach(async transaction => {
-        if (transaction.category === categoryTitle) {
-          const t = transactionsRepository.create({
-            title: transaction.title,
-            value: transaction.value,
-            type: transaction.type,
-            category,
-          });
+    //   transactions.forEach(async transaction => {
+    //     if (transaction.category === categoryTitle) {
+    //       const t = transactionsRepository.create({
+    //         title: transaction.title,
+    //         value: transaction.value,
+    //         type: transaction.type,
+    //         category,
+    //       });
 
-          await transactionsRepository.save(t);
-        }
-      });
-    });
+    //       await transactionsRepository.save(t);
+    //     }
+    //   });
+    // });
 
-    console.log(await categoriesRepository.find());
+    const newCategories = categoriesRepository.create(
+      addCategoryTitles.map(title => ({
+        title,
+      })),
+    );
 
-    // const newCategories = categoriesRepository.create(
-    //   addCategoryTitles.map(title => ({
-    //     title,
-    //   })),
-    // );
+    await categoriesRepository.save(newCategories);
 
-    // await categoriesRepository.save(newCategories);
+    const finalCategories = [...newCategories, ...existentCategories];
 
-    // const finalCategories = [...newCategories, ...existentCategories];
+    const importedTransactions = transactionsRepository.create(
+      transactions.map(transaction => ({
+        title: transaction.title,
+        value: transaction.value,
+        type: transaction.type,
+        category: finalCategories.find(
+          category => category.title === transaction.category,
+        ),
+      })),
+    );
 
-    // const importedTransactions = transactionsRepository.create(
-    //   transactions.map(transaction => ({
-    //     title: transaction.title,
-    //     value: transaction.value,
-    //     type: transaction.type,
-    //     category: finalCategories.find(
-    //       category => category.title === transaction.category,
-    //     ),
-    //   })),
-    // );
-
-    // await transactionsRepository.save(importedTransactions);
-
-    // console.log(await categoriesRepository.find());
+    await transactionsRepository.save(importedTransactions);
 
     const transactionsAndCategories = {
       transactions,
